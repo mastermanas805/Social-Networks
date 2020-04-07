@@ -24,10 +24,12 @@ def get_neigh_for_internal(u,v):
 
 def get_neigh_for_boundary(u,v):
 
+    global N
+
     if u == 0 and v == 0:
         return [(0,1), (1,1), (1,0)]
 
-    elif u == 1 and v == N-1:
+    elif u == N-1 and v == N-1:
         return [(N-2,N-2),(N-1,N-2),(N-2,N-1)]
 
     elif u == N-1 and v == 0:
@@ -54,13 +56,13 @@ def get_unsatisfied_nodes_list(G, internal_nodes_list, boundary_nodes_list):
 
     for u,v in G.nodes():
         type_of_this_node = G.nodes[(u,v)]['type']
-        print(type_of_this_node)
+        #print(type_of_this_node)
 
         if type_of_this_node == 0:
             continue
 
         else:
-            try:
+
                 similar_nodes = 0
                 if (u,v) in internal_nodes_list:
                     neigh = get_neigh_for_internal(u, v)
@@ -73,8 +75,7 @@ def get_unsatisfied_nodes_list(G, internal_nodes_list, boundary_nodes_list):
                         similar_nodes += 1
                 if similar_nodes <= t:
                     unsatisfied_nodes_list.append((u,v))
-            except:
-                pass
+
     return unsatisfied_nodes_list
 
 def get_boundary_nodes(G):
@@ -85,6 +86,19 @@ def get_boundary_nodes(G):
 
     return boundary_nodes_list
 
+
+def make_a_node_satisfied(unsatisfied_nodes_list, empty_cells):
+    if len(unsatisfied_nodes_list) != 0:
+        node_to_shift = random.choice(unsatisfied_nodes_list)
+        new_postition = random.choice(empty_cells)
+
+        G.nodes[new_postition]['type'] = G.nodes[node_to_shift]['type']
+        G.nodes[node_to_shift]['type']  = 0
+
+        labels[node_to_shift], labels[new_postition] = labels[new_postition], labels[node_to_shift]
+
+    else:
+        pass
 #Add diagonal edges
 for ((u,v),d) in G.nodes(data=True):
     if (u+1 <= N-1) and (v+1 <= N-1):
@@ -112,5 +126,13 @@ display_graph(G)
 
 boundary_nodes_list = get_boundary_nodes(G)
 internal_nodes_list = list(set(G.nodes()) - set(boundary_nodes_list))
-unsatisfied_nodes_list = get_unsatisfied_nodes_list(G, internal_nodes_list, boundary_nodes_list)
-print(unsatisfied_nodes_list)
+
+for i in range(1000):
+    unsatisfied_nodes_list = get_unsatisfied_nodes_list(G, internal_nodes_list, boundary_nodes_list)
+    #print(unsatisfied_nodes_list)
+    make_a_node_satisfied(unsatisfied_nodes_list, empty_cells)
+    type1_node_list = [n for  (n,d) in G.nodes(data = True) if d['type'] ==1 ]
+    type2_node_list = [n for  (n,d) in G.nodes(data = True) if d['type'] ==2 ]
+    empty_cells = [n for  (n,d) in G.nodes(data = True) if d['type'] ==0 ]
+
+display_graph(G)
